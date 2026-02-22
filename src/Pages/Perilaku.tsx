@@ -1,17 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
-  BarChart3,
-
   TrendingDown,
   TrendingUp,
-  Map,
   Activity,
-  PieChart,
-  Award,
   Target,
   Lightbulb,
-  Download,
-
   Filter,
   MapPin,
   Zap,
@@ -34,8 +27,20 @@ import {
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 
+type Region = {
+  id: string;
+  name: string;
+  type: string;
+  x: string;
+  y: string;
+  status: "red" | "yellow" | "green";
+  emisi: number;
+  cbi: number;
+  users: string;
+  dom: string;
+};
 // --- MOCK DATA ---
-const mapRegions = [
+const mapRegions: Region[] = [
   {
     id: "jkt",
     name: "DKI Jakarta",
@@ -210,19 +215,8 @@ const trendData = [
 
 export default function Perilaku() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [hoveredRegion, setHoveredRegion] = useState(null);
-  const [selectedRegion, setSelectedRegion] = useState(null);
-
-  const menuItems = [
-    { id: "overview", label: "Overview Nasional", icon: BarChart3 },
-    { id: "map", label: "Peta Perilaku Karbon", icon: Map },
-    { id: "cbi", label: "Climate Behavioral Index", icon: Activity },
-    { id: "analysis", label: "Analisis Aktivitas", icon: PieChart },
-    { id: "leaderboard", label: "Leaderboard Komunitas", icon: Award },
-    { id: "challenge", label: "Monitoring Challenge", icon: Target },
-    { id: "insight", label: "Insight & Rekomendasi AI", icon: Lightbulb },
-    { id: "export", label: "Data Export & Laporan", icon: Download },
-  ];
+  const [hoveredRegion, setHoveredRegion] = useState<Region | null>(null);
+  const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
 
   return (
     <div className="flex h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden">

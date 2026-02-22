@@ -1,16 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
-  BarChart3,
   Users,
   Leaf,
   TrendingDown,
-  Map,
   Activity,
-  PieChart,
-  Award,
-  Target,
-  Lightbulb,
-  Download,
+
 
 } from "lucide-react";
 import {
@@ -52,46 +46,7 @@ const trendDataBulanan = [
   { name: "Jun", emisi: 95000, target: 105000 },
 ];
 
-const menuItems = [
-  { id: "overview", label: "Overview Nasional", icon: BarChart3, active: true },
-  { id: "map", label: "Peta Perilaku Karbon", icon: Map, active: false },
-  {
-    id: "cbi",
-    label: "Climate Behavioral Index",
-    icon: Activity,
-    active: false,
-  },
-  {
-    id: "analysis",
-    label: "Analisis Aktivitas",
-    icon: PieChart,
-    active: false,
-  },
-  {
-    id: "leaderboard",
-    label: "Leaderboard Komunitas",
-    icon: Award,
-    active: false,
-  },
-  {
-    id: "challenge",
-    label: "Monitoring Challenge",
-    icon: Target,
-    active: false,
-  },
-  {
-    id: "insight",
-    label: "Insight & Rekomendasi AI",
-    icon: Lightbulb,
-    active: false,
-  },
-  {
-    id: "export",
-    label: "Data Export & Laporan",
-    icon: Download,
-    active: false,
-  },
-];
+
 
 function App() {
   const [timeFilter, setTimeFilter] = useState("harian");
