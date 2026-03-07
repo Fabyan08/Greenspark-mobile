@@ -1,4 +1,10 @@
-import { useState } from "react";
+declare global {
+  interface Window {
+    L: unknown;
+  }
+}
+
+import React, { useState } from "react";
 import {
   TrendingDown,
   TrendingUp,
@@ -24,21 +30,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import Sidebar from "../components/Sidebar";
-import Header from "../components/Header";
 
-type Region = {
-  id: string;
-  name: string;
-  type: string;
-  x: string;
-  y: string;
-  status: "red" | "yellow" | "green";
-  emisi: number;
-  cbi: number;
-  users: string;
-  dom: string;
-};
 // --- MOCK DATA ---
 const mapRegions: Region[] = [
   {
@@ -47,107 +39,13 @@ const mapRegions: Region[] = [
     type: "Provinsi",
     x: "25%",
     y: "65%",
+    lat: -6.2088,
+    lng: 106.8456,
     status: "red",
     emisi: 125,
     cbi: 42,
     users: "120k",
     dom: "Transportasi (65%)",
-  },
-  {
-    id: "bdg",
-    name: "Bandung (ITB & Unpad)",
-    type: "Kampus",
-    x: "28%",
-    y: "68%",
-    status: "yellow",
-    emisi: 85,
-    cbi: 65,
-    users: "45k",
-    dom: "Konsumsi (40%)",
-  },
-  {
-    id: "sBY",
-    name: "Surabaya (ITS & Unair)",
-    type: "Kampus",
-    x: "35%",
-    y: "70%",
-    status: "yellow",
-    emisi: 90,
-    cbi: 62,
-    users: "50k",
-    dom: "Energi (45%)",
-  },
-  {
-    id: "mlg",
-    name: "Malang (UB)",
-    type: "Kampus",
-    x: "35%",
-    y: "73%",
-    status: "green",
-    emisi: 45,
-    cbi: 88,
-    users: "35k",
-    dom: "Sampah (30%)",
-  },
-  {
-    id: "ygy",
-    name: "DI Yogyakarta (UGM)",
-    type: "Kampus",
-    x: "31%",
-    y: "71%",
-    status: "green",
-    emisi: 40,
-    cbi: 92,
-    users: "60k",
-    dom: "Transportasi (35%)",
-  },
-  {
-    id: "mdn",
-    name: "Medan (USU)",
-    type: "Kampus",
-    x: "12%",
-    y: "35%",
-    status: "red",
-    emisi: 110,
-    cbi: 48,
-    users: "40k",
-    dom: "Energi (50%)",
-  },
-  {
-    id: "mks",
-    name: "Makassar (Unhas)",
-    type: "Kampus",
-    x: "55%",
-    y: "60%",
-    status: "yellow",
-    emisi: 75,
-    cbi: 68,
-    users: "30k",
-    dom: "Transportasi (45%)",
-  },
-  {
-    id: "bl",
-    name: "Bali (Unud)",
-    type: "Kampus",
-    x: "42%",
-    y: "72%",
-    status: "green",
-    emisi: 35,
-    cbi: 90,
-    users: "25k",
-    dom: "Konsumsi (30%)",
-  },
-  {
-    id: "pku",
-    name: "Pekanbaru (Unri)",
-    type: "Kampus",
-    x: "15%",
-    y: "45%",
-    status: "red",
-    emisi: 105,
-    cbi: 50,
-    users: "20k",
-    dom: "Energi (55%)",
   },
 ];
 
@@ -213,11 +111,157 @@ const trendData = [
   { month: "Jun", emisi: 70 },
 ];
 
-export default function Perilaku() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [hoveredRegion, setHoveredRegion] = useState<Region | null>(null);
-  const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
+import Header from "../components/Header";
+import Sidebar from "../components/Sidebar";
+type Region = {
+  id: string;
+  name: string;
+  type: string;
+  lat: number;
+  lng: number;
+  x: string;
+  y: string;
+  status: "red" | "yellow" | "green";
+  emisi: number;
+  cbi: number;
+  users: string;
+  dom: string;
+};
+const RealMap = ({
+  regions,
+  onRegionClick,
+}: {
+  regions: Region[];
+  onRegionClick: (region: Region) => void;
+}) => {
+  const mapRef = React.useRef(null);
+  const [loaded, setLoaded] = React.useState(false);
 
+  React.useEffect(() => {
+    if (window.L) {
+      setLoaded(true);
+      return;
+    }
+
+    // Inject Leaflet CSS & JS dynamically
+    if (!document.getElementById("leaflet-css")) {
+      const css = document.createElement("link");
+      css.id = "leaflet-css";
+      css.rel = "stylesheet";
+      css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+      document.head.appendChild(css);
+
+      const style = document.createElement("style");
+      style.innerHTML = `
+        .custom-leaflet-tooltip { background: white; border: none; box-shadow: none; }
+        .leaflet-tooltip-left::before, .leaflet-tooltip-right::before, .leaflet-tooltip-top::before, .leaflet-tooltip-bottom::before { display: none; }
+        .leaflet-container { font-family: inherit; z-index: 0 !important; background: #ffffff; }
+        .leaflet-control-container { z-index: 10 !important; }
+      `;
+      document.head.appendChild(style);
+    }
+
+    if (!document.getElementById("leaflet-js")) {
+      const js = document.createElement("script");
+      js.id = "leaflet-js";
+      js.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+      js.onload = () => setLoaded(true);
+      document.head.appendChild(js);
+    } else {
+      const checkL = setInterval(() => {
+        if (window.L) {
+          setLoaded(true);
+          clearInterval(checkL);
+        }
+      }, 100);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (!loaded || !mapRef.current) return;
+
+    const L = window.L as any;
+
+    // Inisialisasi peta
+    const map = L.map(mapRef.current, {
+      zoomControl: false,
+      attributionControl: false,
+    }).setView([-2.5489, 118.0149], 5); // Center peta di Indonesia
+
+    L.control.zoom({ position: "bottomright" }).addTo(map);
+
+    // Menggunakan tema peta gelap (Dark Mode) agar glowing dots terlihat estetik
+    L.tileLayer(
+      "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+      {
+        maxZoom: 19,
+        subdomains: "abcd",
+      },
+    ).addTo(map);
+
+    // Menambahkan titik marker untuk setiap wilayah
+    regions.forEach((region: Region) => {
+      const colorClass =
+        region.status === "red"
+          ? "bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.8)]"
+          : region.status === "yellow"
+            ? "bg-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.8)]"
+            : "bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.8)]";
+
+      const iconHtml = `<div class="w-4 h-4 rounded-full border-2 border-slate-800 ${colorClass} hover:scale-150 transition-transform duration-300 cursor-pointer"></div>`;
+
+      const icon = L.divIcon({
+        html: iconHtml,
+        className: "bg-transparent border-none",
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
+      });
+
+      const marker = L.marker([region.lat, region.lng], { icon }).addTo(map);
+
+      // Tooltip bergaya modern saat cursor diarahkan ke marker
+      const tooltipHtml = `
+        <div class="bg-white text-slate-800 px-4 py-3 rounded-xl shadow-xl w-56 font-sans border border-slate-100">
+          <div class="font-bold border-b border-slate-100 pb-2 mb-2">${region.name}</div>
+          <div class="space-y-1.5 text-xs">
+            <div class="flex justify-between"><span class="text-slate-500">Emisi rata-rata:</span><span class="font-semibold">${region.emisi} kg</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Skor CBI:</span><span class="font-semibold text-emerald-600">${region.cbi}/100</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Penyumbang:</span><span class="font-semibold text-rose-600">${region.dom}</span></div>
+          </div>
+        </div>
+      `;
+
+      marker.bindTooltip(tooltipHtml, {
+        direction: "top",
+        className: "custom-leaflet-tooltip",
+        offset: [0, -10],
+        opacity: 1,
+      });
+
+      // Animasi zoom-in dan menampilkan AI Panel saat diklik
+      marker.on("click", () => {
+        map.setView([region.lat, region.lng], 7, {
+          animate: true,
+          duration: 0.8,
+        });
+        onRegionClick(region);
+      });
+    });
+
+    return () => map.remove();
+  }, [loaded, regions, onRegionClick]);
+
+  return (
+    <div
+      ref={mapRef}
+      className="w-full h-full absolute inset-0 z-0 rounded-2xl"
+    />
+  );
+};
+
+export default function App() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
   return (
     <div className="flex h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden">
       {/* --- SIDEBAR --- */}
@@ -228,10 +272,11 @@ export default function Perilaku() {
         {/* HEADER */}
         <Header
           toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-          title="Overview Nasional"
+          title="Peta Perilaku"
         />
         {/* SCROLLABLE DASHBOARD AREA */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
+          {/* HALAMAN MAP */}
           {/* STATISTIK RINGKAS */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
@@ -319,23 +364,20 @@ export default function Perilaku() {
               </div>
 
               {/* MAP CANVAS */}
-              <div className="bg-slate-800 rounded-2xl h-[450px] relative overflow-hidden shadow-inner border border-slate-200 flex items-center justify-center">
-                {/* Simulated Map Background (Dots pattern) */}
-                <div
-                  className="absolute inset-0 opacity-20"
-                  style={{
-                    backgroundImage:
-                      "radial-gradient(#ffffff 1px, transparent 1px)",
-                    backgroundSize: "20px 20px",
-                  }}
-                ></div>
-                <div className="absolute top-4 left-4 text-slate-400 text-xs font-medium tracking-widest flex items-center gap-2">
-                  <MapPin className="w-4 h-4" /> PETA PERSEBARAN INDONESIA
+              <div className="bg-slate-800 rounded-2xl h-[450px] relative overflow-hidden shadow-inner border border-slate-200 flex items-center justify-center z-0">
+                <RealMap
+                  regions={mapRegions}
+                  onRegionClick={setSelectedRegion}
+                />
+
+                <div className="absolute top-4 left-4 text-slate-300 text-xs font-medium tracking-widest flex items-center gap-2 z-20 pointer-events-none drop-shadow-md bg-slate-900/40 px-3 py-1.5 rounded-lg backdrop-blur-sm">
+                  <MapPin className="w-4 h-4 text-emerald-400" /> PETA
+                  PERSEBARAN INDONESIA
                 </div>
 
                 {/* Legend */}
-                <div className="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur px-4 py-3 rounded-xl border border-slate-700 flex flex-col gap-2">
-                  <p className="text-xs text-slate-300 font-semibold mb-1">
+                <div className="absolute bottom-4 left-4 bg-slate-900/90 backdrop-blur px-4 py-3 rounded-xl border border-slate-700 flex flex-col gap-2 z-20 pointer-events-none shadow-lg">
+                  <p className="text-xs text-slate-300 font-bold mb-1">
                     Indikator Emisi
                   </p>
                   <div className="flex items-center gap-2 text-xs text-slate-300">
@@ -351,61 +393,6 @@ export default function Perilaku() {
                     Rendah (Green Zone)
                   </div>
                 </div>
-
-                {/* Map Markers */}
-                {mapRegions.map((region) => (
-                  <div
-                    key={region.id}
-                    className="absolute group cursor-pointer"
-                    style={{ left: region.x, top: region.y }}
-                    onMouseEnter={() => setHoveredRegion(region)}
-                    onMouseLeave={() => setHoveredRegion(null)}
-                    onClick={() => setSelectedRegion(region)}
-                  >
-                    {/* Pin Dot */}
-                    <div
-                      className={`w-4 h-4 rounded-full border-2 border-slate-800 transition-transform duration-300 ${
-                        region.status === "red"
-                          ? "bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.8)] group-hover:scale-150"
-                          : region.status === "yellow"
-                            ? "bg-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.8)] group-hover:scale-150"
-                            : "bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.8)] group-hover:scale-150"
-                      }`}
-                    ></div>
-
-                    {/* Hover Tooltip */}
-                    {hoveredRegion?.id === region.id && (
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 bg-white text-slate-800 px-4 py-3 rounded-xl shadow-xl w-56 z-20 pointer-events-none animate-in fade-in slide-in-from-bottom-2">
-                        <div className="font-bold border-b border-slate-100 pb-2 mb-2">
-                          {region.name}
-                        </div>
-                        <div className="space-y-1.5 text-xs">
-                          <div className="flex justify-between">
-                            <span className="text-slate-500">
-                              Emisi rata-rata:
-                            </span>
-                            <span className="font-semibold">
-                              {region.emisi} kg
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-slate-500">Skor CBI:</span>
-                            <span className="font-semibold text-emerald-600">
-                              {region.cbi}/100
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-slate-500">Penyumbang:</span>
-                            <span className="font-semibold text-rose-600">
-                              {region.dom}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45"></div>
-                      </div>
-                    )}
-                  </div>
-                ))}
 
                 {/* AI INSIGHT PANEL (Muncul saat klik marker) */}
                 {selectedRegion && (
@@ -673,6 +660,7 @@ export default function Perilaku() {
             </div>
           </div>
         </div>
+        {/* AKHIR HALAMAN MAP */}
       </main>
     </div>
   );

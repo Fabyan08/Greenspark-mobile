@@ -6,8 +6,8 @@ import {
   PieChart,
   Award,
   Target,
-  Lightbulb,
-  Download,
+  // Lightbulb,
+  // Download,
   Leaf,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
@@ -46,18 +46,18 @@ const menuItems: MenuItem[] = [
     icon: Target,
     path: "/challenge",
   },
-  {
-    id: "insight",
-    label: "Insight & Rekomendasi AI",
-    icon: Lightbulb,
-    path: "/insight",
-  },
-  {
-    id: "export",
-    label: "Data Export & Laporan",
-    icon: Download,
-    path: "/export",
-  },
+  // {
+  //   id: "insight",
+  //   label: "Insight & Rekomendasi AI",
+  //   icon: Lightbulb,
+  //   path: "/insight",
+  // },
+  // {
+  //   id: "export",
+  //   label: "Data Export & Laporan",
+  //   icon: Download,
+  //   path: "/export",
+  // },
 ];
 
 type SidebarProps = {
