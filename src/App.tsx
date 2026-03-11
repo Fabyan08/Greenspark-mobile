@@ -26,7 +26,7 @@ import {
 export default function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [isAIOpen, setIsAIOpen] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast] = useState<string | null>(null);
 
   // Fungsi untuk memunculkan notifikasi interaktif (Toast)
   // const showToast = (msg: string) => {
@@ -34,10 +34,10 @@ export default function App() {
   //   setTimeout(() => setToast(null), 3000);
   // };
 
-  const showToast = (msg: string) => {
+  const showToast = () => {
     return; // toast dimatikan
   };
-  
+
   const renderScreen = () => {
     switch (activeTab) {
       case "home":
