@@ -71,7 +71,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-[#0F172A] sm:p-4 font-sans">
+    <div className="flex justify-center items-center min-h-screen bg-[#ffffff] sm:p-4 font-sans">
       {/* Mobile Device Frame */}
       <div className="w-full max-w-md h-[100dvh] sm:h-[90vh] sm:rounded-[2.5rem] bg-[#F8FAFC] overflow-hidden relative shadow-2xl ring-1 ring-white/10 flex flex-col">
         {/* Interactive Toast Notification */}
